@@ -32,7 +32,7 @@ async function run() {
 run().catch(console.dir);
 
 app.get('/', (req, res) => {
-    res.send('Server Running');
+    res.send('Micro Center Server Running');
 });
 
 app.listen(port, () => {
