@@ -22,6 +22,7 @@ async function run() {
     try {
         await client.connect();
         const itemCollection = client.db('MicroCenter').collection('items');
+        const reviewCollection = await client.db('MicroCenter').collection('reviews');
 
         // Items
         app.get('/items', async (req, res) => {
@@ -37,6 +38,14 @@ async function run() {
             const query = { _id: ObjectId(id) };
             const item = await itemCollection.findOne(query);
             res.send(item);
+        });
+
+        // Review
+        app.get('/reviews', async (req, res) => {
+            const query = {};
+            const cursor = reviewCollection.find(query);
+            const reviews = await cursor.toArray();
+            res.send(reviews);
         });
 
     }
