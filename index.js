@@ -9,9 +9,6 @@ app.use(cors());
 app.use(express.json());
 
 
-
-
-
 // connect to mongodb start
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.cuqkp.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
@@ -23,6 +20,7 @@ async function run() {
         await client.connect();
         const itemCollection = client.db('MicroCenter').collection('items');
         const reviewCollection = await client.db('MicroCenter').collection('reviews');
+        const userCollection = await client.db('MicroCenter').collection('users');
 
         // Items
         app.get('/items', async (req, res) => {
@@ -48,6 +46,35 @@ async function run() {
             res.send(reviews);
         });
 
+        // Users
+        app.get('/users', async (req, res) => {
+            const users = await userCollection.find().toArray()
+            res.send(users)
+        })
+
+        app.put('/users/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = req.body;
+            const filter = { email: email };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: user,
+            };
+            const result = await userCollection.updateOne(filter, updateDoc, options);
+            // const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
+            res.send(result);
+        })
+
+        app.get('/users/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email };
+            const cursor = userCollection.find(query);
+            const reviews = await cursor.toArray();
+            res.send(reviews);
+        }); app.get('/users', async (req, res) => {
+            const users = await userCollection.find().toArray()
+            res.send(users)
+        })
     }
     finally { }
 }
