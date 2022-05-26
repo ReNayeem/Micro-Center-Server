@@ -200,21 +200,21 @@ async function run() {
             res.send(result);
         });
         //update order
-        app.patch('/orders/:id', async (req, res) => {
+        app.patch('/ordered/:id', async (req, res) => {
             const id = req.params.id;
-            const payment = req.body
+            const payment = req.body;
             const filter = { _id: ObjectId(id) };
-
             const updatedDoc = {
                 $set: {
                     paid: true,
                     transactionId: payment.transactionId
                 }
             }
+
             const result = await paymentCollection.insertOne(payment);
             const updatedBooking = await orderCollection.updateOne(filter, updatedDoc);
-            res.send(updatedBooking);
-        });
+            res.send(updatedBooking, result);
+        })
 
         //profile 
         app.get('/profile', async (req, res) => {
@@ -223,17 +223,8 @@ async function run() {
             const items = await cursor.toArray();
             res.send(items);
         });
-        //get profile by email
-        //    app.get('/profile',async(req,res)=>{
 
 
-        //    const query={email:email}
-        //     const tasks = await profileCollection.find(query).toArray();
-        //     res.send(tasks);
-        // })
-        // update product
-
-        // update profile
         app.put('/profile/:id', async (req, res) => {
             const id = req.params
             const updatedProfile = req.body;
