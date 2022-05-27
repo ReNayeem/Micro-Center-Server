@@ -8,24 +8,24 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
 
 // connect to mongodb start
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.cuqkp.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 // connect to mongodb end
 
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-
 
 async function run() {
     try {
         await client.connect();
         const itemCollection = client.db('MicroCenter').collection('items');
-        const reviewCollection = await client.db('MicroCenter').collection('reviews');
-        const userCollection = await client.db('MicroCenter').collection('users');
-        const orderCollection = await client.db('MicroCenter').collection('orders');
-        const profileCollection = await client.db('MicroCenter').collection('profiles');
-        const paymentCollection = await client.db('MicroCenter').collection('payments');
+        const reviewCollection = client.db('MicroCenter').collection('reviews');
+        const userCollection = client.db('MicroCenter').collection('users');
+        const orderCollection = client.db('MicroCenter').collection('orders');
+        const profileCollection = client.db('MicroCenter').collection('profiles');
+        const paymentCollection = client.db('MicroCenter').collection('payments');
 
 
 
@@ -96,7 +96,6 @@ async function run() {
             const name = req.query.name;
             const query = { name: name };
             const tasks = await itemCollection.find(query).toArray();
-            console.log(tasks);
             res.send(tasks);
         })
         //get order by email
@@ -134,9 +133,10 @@ async function run() {
                 $set: user,
             };
             const result = await userCollection.updateOne(filter, updateDoc, options);
-            // const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
-            res.send({ result });
+            const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
+            res.send({ result, token });
         })
+
         //admin check
         app.get('/admin/:email', async (req, res) => {
             const email = req.params.email;
@@ -224,11 +224,9 @@ async function run() {
             res.send(items);
         });
 
-
         app.put('/profile/:id', async (req, res) => {
             const id = req.params
             const updatedProfile = req.body;
-            console.log(updatedProfile);
 
             const filter = { _id: ObjectId(id) };
             const options = { upsert: true };
@@ -240,8 +238,6 @@ async function run() {
                 updateDoc,
                 options
             );
-            console.log(result);
-            res.send(result);
         });
     }
     finally { }
