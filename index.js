@@ -238,6 +238,22 @@ async function run() {
             res.send(updatedBooking);
         });
 
+        app.get('/orders', async (req, res) => {
+            const query = {};
+            const result = await orderCollection.find(query).toArray();
+            res.send(result);
+        })
+        app.put('/orders/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const updateDoc = {
+                $set: { status: 'shipped' },
+            };
+            const result = await orderCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        })
+
+
         // Get profile 
         app.get('/profile', async (req, res) => {
             const query = {};
@@ -262,7 +278,6 @@ async function run() {
             );
             res.send(result);
         });
-
     } finally {
 
     }
